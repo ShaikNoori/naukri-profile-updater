@@ -140,6 +140,7 @@ def test_naukrid2dlogin():
         print("Launching Chrome browser...")
 
         driver = uc.Chrome(
+            version_main=147,
             options=options,
             use_subprocess=True,
             headless=True
