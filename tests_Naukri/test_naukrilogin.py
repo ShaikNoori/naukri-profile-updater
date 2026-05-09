@@ -104,7 +104,7 @@ def test_naukrid2dlogin():
 
         # Headless mode for GitHub Actions
         # Browser runs in background without UI
-        options.add_argument("--headless=new")
+        # options.add_argument("--headless=new")
 
         # Stability options for Linux GitHub runner
         options.add_argument("--no-sandbox")
@@ -142,8 +142,7 @@ def test_naukrid2dlogin():
         driver = uc.Chrome(
             version_main=147,
             options=options,
-            use_subprocess=True,
-            headless=True
+            use_subprocess=True
         )
 
         # Explicit wait object
