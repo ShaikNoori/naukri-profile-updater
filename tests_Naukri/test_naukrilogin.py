@@ -2,103 +2,155 @@ import os
 import time
 import traceback
 import smtplib
+
 from email.mime.text import MIMEText
+
 import undetected_chromedriver as uc
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 
-# =========================
+# =========================================================
 # GITHUB SECRETS
-# =========================
+# =========================================================
+# These values come securely from GitHub Actions Secrets
+# Repository -> Settings -> Secrets and variables -> Actions
+# =========================================================
 
 username = os.getenv("NAUKRI_USERNAME")
 password = os.getenv("NAUKRI_PASSWORD")
 
 sender_email = os.getenv("SENDER_EMAIL")
 sender_password = os.getenv("SENDER_PASSWORD")
+
 receiver_email = os.getenv("RECEIVER_EMAIL")
 
 
-# =========================
+# =========================================================
 # EMAIL FUNCTION
-# =========================
+# =========================================================
+# Sends email notification after success/failure
+# =========================================================
 
 def send_email(subject, body):
 
-    msg = MIMEText(body)
+    try:
 
-    msg["Subject"] = subject
-    msg["From"] = sender_email
-    msg["To"] = receiver_email
+        # Create email message
+        msg = MIMEText(body)
 
-    server = smtplib.SMTP("smtp.gmail.com", 587)
+        msg["Subject"] = subject
+        msg["From"] = sender_email
+        msg["To"] = receiver_email
 
-    server.starttls()
+        # Connect to Gmail SMTP server
+        server = smtplib.SMTP("smtp.gmail.com", 587)
 
-    server.login(sender_email, sender_password)
+        # Start TLS encryption
+        server.starttls()
 
-    server.sendmail(
-        sender_email,
-        receiver_email,
-        msg.as_string()
-    )
+        # Login to Gmail
+        server.login(sender_email, sender_password)
 
-    server.quit()
+        # Send email
+        server.sendmail(
+            sender_email,
+            receiver_email,
+            msg.as_string()
+        )
+
+        # Close server connection
+        server.close()
+
+        print("Email sent successfully")
+
+    except Exception as email_error:
+
+        print("Failed to send email")
+        print(str(email_error))
 
 
-# =========================
-# MAIN FUNCTION
-# =========================
+# =========================================================
+# MAIN AUTOMATION FUNCTION
+# =========================================================
 
 def test_naukrid2dlogin():
 
-    # =========================
-    # CHROME OPTIONS
-    # =========================
-
-    options = uc.ChromeOptions()
-
-    # Headless mode for GitHub Actions
-    options.add_argument("--headless=new")
-
-    # Disable save password popup
-    prefs = {
-        "credentials_enable_service": False,
-        "profile.password_manager_enabled": False,
-        "profile.default_content_setting_values.notifications": 2
-    }
-
-    options.add_experimental_option("prefs", prefs)
-
-    # Browser options
-    options.add_argument("--start-maximized")
-    options.add_argument("--disable-notifications")
-    options.add_argument("--disable-popup-blocking")
-    options.add_argument("--disable-extensions")
-    options.add_argument("--disable-blink-features=AutomationControlled")
-
-    # Required for GitHub Actions Linux
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-
-    # =========================
-    # OPEN CHROME
-    # =========================
-
-    driver = uc.Chrome(
-        options=options,
-        use_subprocess=True
-    )
-
-    wait = WebDriverWait(driver, 30)
+    driver = None
 
     try:
 
-        # =========================
-        # OPEN WEBSITE
-        # =========================
+        # =========================================================
+        # VALIDATE GITHUB SECRETS
+        # =========================================================
+
+        if not username or not password:
+            raise Exception(
+                "Naukri credentials missing in GitHub Secrets"
+            )
+
+        if not sender_email or not sender_password or not receiver_email:
+            raise Exception(
+                "Email credentials missing in GitHub Secrets"
+            )
+
+        # =========================================================
+        # CHROME OPTIONS
+        # =========================================================
+
+        options = uc.ChromeOptions()
+
+        # Headless mode for GitHub Actions
+        # Browser runs in background without UI
+        options.add_argument("--headless=new")
+
+        # Stability options for Linux GitHub runner
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
+        options.add_argument("--disable-gpu")
+
+        # Browser size
+        options.add_argument("--window-size=1920,1080")
+
+        # Disable browser features/popups
+        options.add_argument("--disable-notifications")
+        options.add_argument("--disable-popup-blocking")
+        options.add_argument("--disable-extensions")
+
+        # Helps reduce automation detection
+        options.add_argument(
+            "--disable-blink-features=AutomationControlled"
+        )
+
+        # Disable password manager popup
+        prefs = {
+            "credentials_enable_service": False,
+            "profile.password_manager_enabled": False,
+            "profile.default_content_setting_values.notifications": 2
+        }
+
+        options.add_experimental_option("prefs", prefs)
+
+        # =========================================================
+        # OPEN CHROME BROWSER
+        # =========================================================
+
+        print("Launching Chrome browser...")
+
+        driver = uc.Chrome(
+            options=options,
+            use_subprocess=True,
+            headless=True
+        )
+
+        # Explicit wait object
+        wait = WebDriverWait(driver, 30)
+
+        # =========================================================
+        # OPEN NAUKRI WEBSITE
+        # =========================================================
 
         print("Opening Naukri website...")
 
@@ -110,9 +162,9 @@ def test_naukrid2dlogin():
         print("Current URL:", driver.current_url)
         print("Page Title:", driver.title)
 
-        # =========================
-        # CLICK LOGIN
-        # =========================
+        # =========================================================
+        # CLICK LOGIN BUTTON
+        # =========================================================
 
         print("Finding Login button...")
 
@@ -128,9 +180,9 @@ def test_naukrid2dlogin():
 
         time.sleep(3)
 
-        # =========================
-        # USERNAME
-        # =========================
+        # =========================================================
+        # ENTER USERNAME
+        # =========================================================
 
         print("Entering username...")
 
@@ -147,11 +199,11 @@ def test_naukrid2dlogin():
 
         username_field.send_keys(username)
 
-        print("Username entered")
+        print("Username entered successfully")
 
-        # =========================
-        # PASSWORD
-        # =========================
+        # =========================================================
+        # ENTER PASSWORD
+        # =========================================================
 
         print("Entering password...")
 
@@ -168,11 +220,11 @@ def test_naukrid2dlogin():
 
         password_field.send_keys(password)
 
-        print("Password entered")
+        print("Password entered successfully")
 
-        # =========================
-        # LOGIN SUBMIT
-        # =========================
+        # =========================================================
+        # CLICK LOGIN SUBMIT BUTTON
+        # =========================================================
 
         print("Clicking login submit button...")
 
@@ -187,17 +239,14 @@ def test_naukrid2dlogin():
 
         login_submit_button.click()
 
-        print("Login submitted")
+        print("Login submitted successfully")
 
-        # =========================
-        # WAIT AFTER LOGIN
-        # =========================
-
+        # Wait after login
         time.sleep(10)
 
-        # =========================
-        # CLOSE CHAT POPUP
-        # =========================
+        # =========================================================
+        # CLOSE CHAT POPUP IF PRESENT
+        # =========================================================
 
         try:
 
@@ -217,11 +266,11 @@ def test_naukrid2dlogin():
 
             print("No chat popup found")
 
-        # =========================
-        # OPEN PROFILE DIRECTLY
-        # =========================
+        # =========================================================
+        # OPEN PROFILE PAGE DIRECTLY
+        # =========================================================
 
-        print("Opening profile page directly...")
+        print("Opening profile page...")
 
         driver.get(
             "https://www.naukri.com/mnjuser/profile"
@@ -229,11 +278,11 @@ def test_naukrid2dlogin():
 
         time.sleep(8)
 
-        print("Profile page opened")
+        print("Profile page opened successfully")
 
-        # =========================
+        # =========================================================
         # CLICK EDIT BUTTON
-        # =========================
+        # =========================================================
 
         print("Finding Edit button...")
 
@@ -253,15 +302,12 @@ def test_naukrid2dlogin():
 
         print("Edit button clicked")
 
-        # =========================
-        # WAIT FOR FORM
-        # =========================
-
+        # Wait for form
         time.sleep(5)
 
-        # =========================
+        # =========================================================
         # CLICK SAVE BUTTON
-        # =========================
+        # =========================================================
 
         print("Finding Save button...")
 
@@ -283,13 +329,18 @@ def test_naukrid2dlogin():
         print("NAUKRI PROFILE UPDATED SUCCESSFULLY")
         print("===================================")
 
-        # =========================
+        # =========================================================
         # SEND SUCCESS EMAIL
-        # =========================
+        # =========================================================
 
         send_email(
             "Naukri Profile Updated Successfully",
-            "Naukri profile updated successfully using GitHub Actions."
+            """
+Naukri profile updated successfully using GitHub Actions.
+
+Automation Status:
+SUCCESS
+"""
         )
 
         time.sleep(5)
@@ -305,18 +356,30 @@ def test_naukrid2dlogin():
 
         traceback.print_exc()
 
-        driver.save_screenshot("error.png")
+        # =========================================================
+        # SAVE ERROR SCREENSHOT
+        # =========================================================
 
-        print("\nScreenshot saved as error.png")
+        try:
 
-        # =========================
+            if driver:
+
+                driver.save_screenshot("error.png")
+
+                print("Screenshot saved as error.png")
+
+        except:
+
+            print("Unable to save screenshot")
+
+        # =========================================================
         # SEND FAILURE EMAIL
-        # =========================
+        # =========================================================
 
         send_email(
             "Naukri Automation Failed",
             f"""
-Automation failed.
+Naukri automation failed.
 
 Error Type:
 {type(e).__name__}
@@ -326,16 +389,29 @@ Error Message:
 """
         )
 
+        raise
+
     finally:
 
-        driver.quit()
+        # =========================================================
+        # CLOSE BROWSER
+        # =========================================================
+
+        try:
+
+            if driver:
+                driver.quit()
+
+        except:
+
+            pass
 
         print("Browser closed")
 
 
-# =========================
+# =========================================================
 # RUN SCRIPT
-# =========================
+# =========================================================
 
 if __name__ == "__main__":
 
