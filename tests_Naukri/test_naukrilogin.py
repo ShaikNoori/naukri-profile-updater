@@ -29,13 +29,9 @@ from selenium.webdriver.support import expected_conditions as EC
 # =========================
 
 username = os.getenv("NAUKRI_USERNAME") or "noori.shaiknowreen@gmail.com"
-
 password = os.getenv("NAUKRI_PASSWORD") or "43Zindagi@noori"
-
 sender_email = os.getenv("SENDER_EMAIL") or "noori.shaiknowreen@gmail.com"
-
 sender_password = os.getenv("SENDER_PASSWORD") or "eirl dcgp gsoc crqr"
-
 receiver_email = os.getenv("RECEIVER_EMAIL") or "noori.shaiknowreen@gmail.com"
 
 
@@ -115,7 +111,7 @@ def test_naukrid2dlogin():
 
         # Headless mode for GitHub Actions
         # Browser runs in background without UI
-        # options.add_argument("--headless=new")
+        options.add_argument("--headless=new")
 
         # Stability options for Linux GitHub runner
         options.add_argument("--no-sandbox")
@@ -151,7 +147,7 @@ def test_naukrid2dlogin():
         print("Launching Chrome browser...")
 
         driver = uc.Chrome(
-            version_main=147,
+          #  version_main=147,
             options=options,
             use_subprocess=True
         )
