@@ -1,3 +1,4 @@
+import gc
 import os
 import time
 import traceback
@@ -19,13 +20,23 @@ from selenium.webdriver.support import expected_conditions as EC
 # Repository -> Settings -> Secrets and variables -> Actions
 # =========================================================
 
-username = os.getenv("NAUKRI_USERNAME")
-password = os.getenv("NAUKRI_PASSWORD")
+# =========================
+# LOCAL CREDENTIALS
+# =========================
 
-sender_email = os.getenv("SENDER_EMAIL")
-sender_password = os.getenv("SENDER_PASSWORD")
+# =========================
+# CREDENTIALS
+# =========================
 
-receiver_email = os.getenv("RECEIVER_EMAIL")
+username = os.getenv("NAUKRI_USERNAME") or "noori.shaiknowreen@gmail.com"
+
+password = os.getenv("NAUKRI_PASSWORD") or "43Zindagi@noori"
+
+sender_email = os.getenv("SENDER_EMAIL") or "noori.shaiknowreen@gmail.com"
+
+sender_password = os.getenv("SENDER_PASSWORD") or "eirl dcgp gsoc crqr"
+
+receiver_email = os.getenv("RECEIVER_EMAIL") or "noori.shaiknowreen@gmail.com"
 
 
 # =========================================================
@@ -393,20 +404,15 @@ Error Message:
 
     finally:
 
-        # =========================================================
-        # CLOSE BROWSER
-        # =========================================================
-
         try:
-
             if driver:
                 driver.quit()
+                print("Browser closed")
 
-        except:
-
+        except Exception:
             pass
 
-        print("Browser closed")
+        gc.collect()
 
 
 # =========================================================
